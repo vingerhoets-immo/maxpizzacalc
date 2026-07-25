@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color: #1a1614; background: #FFD93D; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; background: #FFD93D; font-family: var(--font-nunito), sans-serif; font-size: 16px; font-weight: 700; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+.comic { border: 3px solid #1a1614; border-radius: 14px; background: #FFFDF7; box-shadow: 4px 4px 0 #1a1614; }
+.btn { border: 3px solid #1a1614; border-radius: 10px; background: #E8401A; color: white; padding: .55rem .8rem; box-shadow: 3px 3px 0 #1a1614; font-weight: 900; }
+.btn:active { transform: translate(3px,3px); box-shadow: none; }
+.btn.alt { background: #FFFDF7; color: #1a1614; }
+.btn.green { background: #4CAF50; }.btn.small { padding: .35rem .55rem; font-size: .85rem; }
+.field { display: grid; grid-template-columns: 1fr 72px; align-items: center; gap: .6rem; margin: .75rem 0; }.field label { font-size: .95rem; }
+.field input[type=range] { accent-color: #E8401A; width: 100%; }.field input[type=number], input, select, textarea { border: 2px solid #1a1614; border-radius: 7px; background: #fff; padding: .35rem .45rem; min-width: 0; }
+.section-title { font-family: var(--font-archivo), sans-serif; font-size: 1.15rem; margin: 0 0 .7rem; }.tab { border: 3px solid #1a1614; border-bottom: 0; border-radius: 12px 12px 0 0; padding: .6rem .75rem; background: #ffe982; font-weight: 900; }.tab.active { background: #FFFDF7; transform: translateY(3px); }
+.metric { border-top: 2px solid #1a1614; padding: .45rem 0; display:flex; justify-content:space-between; gap:.5rem; }.metric strong { font-family: var(--font-archivo); }
+.chip { display: inline-flex; align-items:center; gap:.25rem; padding:.2rem .5rem; border:2px solid #1a1614; border-radius: 999px; background:#fff; font-size:.82rem; margin:.15rem; }.timeline { border-left:3px solid #1a1614; margin:.5rem .4rem; padding-left:1rem; }.timeline div { position:relative; padding:.25rem 0 .75rem; }.timeline div:before { content:''; position:absolute; left:-1.45rem; top:.48rem; background:#E8401A; width:.7rem; height:.7rem; border:2px solid #1a1614; border-radius:50%; }
+@media (min-width: 900px) { .calculator-grid { display:grid; grid-template-columns:minmax(340px,1fr) minmax(320px,.9fr); gap:1rem; align-items:start; }.sticky { position:sticky; top:1rem; } }

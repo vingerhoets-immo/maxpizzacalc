@@ -1,0 +1,8 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+export const runtime = 'edge';
+const fail = (e: unknown) => NextResponse.json({ error: e instanceof Error ? e.message : 'Datenbankfehler' }, { status: 503 });
+export async function GET() { try { return NextResponse.json(await db().query('select * from pizza_kreationen order by updated_at desc')); } catch(e) { return fail(e); } }
+export async function POST(req: NextRequest) { try { const x = await req.json(), id = x.id || crypto.randomUUID(); const rows = await db().query('insert into pizza_kreationen (id,name,sauce,stars,toppings,beschreibung,photo,datum) values ($1,$2,$3,$4,$5::jsonb,$6,$7,$8) returning *', [id,x.name,x.sauce,x.stars||0,JSON.stringify(x.toppings||[]),x.beschreibung||'',x.photo||null,x.datum||new Date().toISOString()]); return NextResponse.json(rows[0], {status:201}); } catch(e) { return fail(e); } }
+export async function PUT(req: NextRequest) { try { const x = await req.json(); const rows = await db().query('update pizza_kreationen set name=$2,sauce=$3,stars=$4,toppings=$5::jsonb,beschreibung=$6,photo=$7,datum=$8,updated_at=now() where id=$1 returning *', [x.id,x.name,x.sauce,x.stars||0,JSON.stringify(x.toppings||[]),x.beschreibung||'',x.photo||null,x.datum||new Date().toISOString()]); return NextResponse.json(rows[0]); } catch(e) { return fail(e); } }
+export async function DELETE(req: NextRequest) { try { await db().query('delete from pizza_kreationen where id=$1',[new URL(req.url).searchParams.get('id')]); return NextResponse.json({ok:true}); } catch(e) { return fail(e); } }
