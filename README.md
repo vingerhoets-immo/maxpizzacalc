@@ -1,4 +1,4 @@
-# Pizza HQ 🍕
+# Teigzeit 🍕
 
 Mobile-first Pizza-Teig-Rechner, Gärplaner und persönliche Kreationen-Bibliothek im Fumetto-Stil. Die App ist eine Next.js-App mit App Router und wird auf Vercel direkt mit Neon Postgres betrieben.
 
