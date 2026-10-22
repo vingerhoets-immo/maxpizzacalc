@@ -46,9 +46,9 @@ body:has(.theme-ledger) { background:#efe4d3; } body:has(.theme-ledger) .theme-l
 .live-countdown { display:grid; justify-items:end; flex:none; text-align:right; }
 .live-countdown span { color:#bb442d; font-family:var(--font-archivo),sans-serif; font-size:1.16rem; white-space:nowrap; }
 .live-countdown small { margin-top:.18rem; color:#6c625c; font-size:.7rem; }
-.live-track { height:12px; overflow:hidden; border-radius:999px; background:#e8e1d7; box-shadow:inset 0 1px 2px rgba(43,33,27,.12); }
-.live-fill { position:relative; height:100%; border-radius:inherit; background:linear-gradient(90deg,#df7851 0%,#d65b39 55%,#b83f2c 100%); transition:width 1s linear; }
-.live-fill:after { content:''; position:absolute; inset:0; background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.32) 50%,transparent 80%); background-size:160px 100%; animation:live-shine 4s linear infinite; }
+/* Full-width gradient stays fixed as progress reveals it from left to right. */
+.live-track { height:14px; overflow:hidden; border-radius:999px; background:linear-gradient(90deg,#eee6d8 0%,#eee0c9 55%,#e9d3be 80%,#dfc3ba 100%); box-shadow:inset 0 1px 2px #2b211b12; }
+.live-fill { width:100%; height:100%; border-radius:inherit; background:linear-gradient(90deg,#d9c49e 0%,#d5aa64 42%,#d37a38 70%,#b53d29 88%,#7d2c22 100%); transition:clip-path 1s linear; box-shadow:inset 0 1px 1px #ffffff30; }
 .live-milestones { margin-top:.55rem; color:#716960; font-size:.66rem; line-height:1.35; }
 .live-milestones span:last-child { text-align:right; }
 .live-milestones span:nth-child(2) { text-align:center; }
@@ -133,8 +133,6 @@ body:has(.theme-ledger) { background:#efe4d3; } body:has(.theme-ledger) .theme-l
 .run-start strong { font-size:.95rem; }.run-start p { color:#d8cabb; max-width:28rem; line-height:1.5; }.run-start .start-primary { display:flex; justify-content:space-between; align-items:center; gap:1.75rem; padding:.85rem 1.15rem; min-width:145px; border:0; border-radius:11px; background:#bd3e2e; color:#fff; font-size:1rem; box-shadow:0 4px 12px #0002; }.start-primary span { font-size:1.3rem; }
 .live-countdown span,.live-countdown.overdue span { font-variant-numeric:tabular-nums; letter-spacing:-.025em; }
 .progress-caption { display:flex; justify-content:space-between; gap:.5rem; margin:1rem 0 .5rem; font-size:.7rem; color:#796d61; }.progress-caption strong { color:#bd3e2e; font-variant-numeric:tabular-nums; }
-.segmented-track { display:flex; gap:5px; height:14px; overflow:visible; border-radius:0; background:none; box-shadow:none; }
-.progress-segment { flex:1; min-width:0; overflow:hidden; border-radius:999px; background:#e8e1d7; box-shadow:inset 0 1px 2px #2b211b12; }.progress-segment.current { box-shadow:0 0 0 2px #df78512a; }.progress-segment .live-fill { min-width:0; }
 .progress-phase-labels { display:flex; gap:.4rem; margin:.75rem 0 1rem; overflow-x:auto; padding:.15rem 0 .4rem; scrollbar-width:thin; }.progress-phase-labels span { flex:1; min-width:55px; color:#9a8c7e; font-size:.6rem; line-height:1.35; }.progress-phase-labels i { display:block; width:19px; height:19px; margin-bottom:.3rem; border-radius:50%; background:#f0e9e0; text-align:center; line-height:19px; font-size:.6rem; font-style:normal; }.progress-phase-labels .done { color:#55734f; }.progress-phase-labels .done i { color:#fff; background:#55734f; }.progress-phase-labels .current { color:#a73525; font-weight:800; }.progress-phase-labels .current i { color:#fff; background:#bd3e2e; }
 @media (max-width:540px) { .bake-field { padding:.8rem; }.bake-field > strong { font-size:1.06rem; }.run-start .start-primary { margin-top:.8rem; }.progress-phase-labels { gap:.35rem; }.live-countdown span { font-size:1.6rem; } }
 @media (prefers-reduced-motion:reduce) { .bake-popover { animation:none; } }
