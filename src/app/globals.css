@@ -98,3 +98,6 @@ body:has(.theme-ledger) { background:#efe4d3; } body:has(.theme-ledger) .theme-l
 .readiness-result { margin-top:.8rem; padding:.8rem; border-radius:10px; background:#f8edce; font-size:.8rem; line-height:1.5; }.readiness-result p { margin:0 0 .6rem; }
 .run-recipe > p { font-size:.77rem; line-height:1.5; }.run-recipe .observation { padding:.65rem; border-radius:8px; background:#f8f2e7; color:#796d61; }
 @media (max-width:540px) { .app-shell > header { margin-bottom:1rem; }.app-shell > header > p:first-child { font-size:2rem; }.live-style { font-size:.65rem; }.live-progress { padding:.9rem; }.live-countdown.overdue span { max-width:100%; font-size:1.1rem; } }
+.preset-save { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:.65rem; margin-top:1rem; }
+.preset-save label { display:grid; gap:.3rem; font-size:.8rem; }.preset-save input { width:100%; }.preset-save button { font-size:.8rem; }.preset-save button:disabled { cursor:not-allowed; opacity:.5; box-shadow:none; }.preset-save p { grid-column:1/-1; margin:0; font-size:.78rem; }
+@media (max-width:540px) { .preset-save { grid-template-columns:1fr; } }
