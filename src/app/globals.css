@@ -138,3 +138,10 @@ body:has(.theme-ledger) { background:#efe4d3; } body:has(.theme-ledger) .theme-l
 .progress-phase-labels { display:flex; gap:.4rem; margin:.75rem 0 1rem; overflow-x:auto; padding:.15rem 0 .4rem; scrollbar-width:thin; }.progress-phase-labels span { flex:1; min-width:55px; color:#9a8c7e; font-size:.6rem; line-height:1.35; }.progress-phase-labels i { display:block; width:19px; height:19px; margin-bottom:.3rem; border-radius:50%; background:#f0e9e0; text-align:center; line-height:19px; font-size:.6rem; font-style:normal; }.progress-phase-labels .done { color:#55734f; }.progress-phase-labels .done i { color:#fff; background:#55734f; }.progress-phase-labels .current { color:#a73525; font-weight:800; }.progress-phase-labels .current i { color:#fff; background:#bd3e2e; }
 @media (max-width:540px) { .bake-field { padding:.8rem; }.bake-field > strong { font-size:1.06rem; }.run-start .start-primary { margin-top:.8rem; }.progress-phase-labels { gap:.35rem; }.live-countdown span { font-size:1.6rem; } }
 @media (prefers-reduced-motion:reduce) { .bake-popover { animation:none; } }
+
+/* Fixierter Startbereich mit eigenem Platz am Seitenende. */
+body:has(.start-dock) { padding-bottom:calc(125px + env(safe-area-inset-bottom,0px)); }
+.run-start.start-dock,.theme-ledger .run-start.start-dock { position:fixed; z-index:40; bottom:max(14px,env(safe-area-inset-bottom,0px)); left:50%; transform:translateX(-50%); width:calc(100% - 32px); max-width:720px; margin:0; padding:.8rem 1rem; border:1px solid #ffffff30; background:#342b26f5; backdrop-filter:blur(18px); box-shadow:0 10px 35px #342b2640; }
+.start-dock strong { font-size:.83rem; }.start-dock p { max-width:27rem; font-size:.69rem; }.start-dock .start-primary { min-width:140px; }
+body:has(.bake-popover) .start-dock { visibility:hidden; pointer-events:none; }
+@media(max-width:540px) { .run-start.start-dock { display:flex; gap:.65rem; padding:.75rem; width:calc(100% - 24px); }.start-dock > div { min-width:0; }.start-dock p { font-size:.62rem; }.start-dock .start-primary { margin:0; width:auto; min-width:110px; gap:.6rem; padding:.8rem .9rem; font-size:.9rem; } }

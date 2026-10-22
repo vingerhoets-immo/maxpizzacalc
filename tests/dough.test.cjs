@@ -118,3 +118,59 @@ test('countdown always displays seconds including days and overdue boundaries', 
   assert.equal(remaining(59000), '00:00:59');
   assert.equal(remaining(-1), '00:00:00');
 });
+
+const { resolveBalling } = require('../src/app/doughPlan.ts');
+test('recommendation uses early balling for warm Neapolitan direct dough and respects overrides', () => {
+  assert.equal(resolveBalling('auto', 'napoli', 'direct', false), 'early');
+  assert.equal(resolveBalling('auto', 'napoli', 'direct', true), 'late');
+  assert.equal(resolveBalling('auto', 'napoli', 'poolish', false), 'late');
+  assert.equal(resolveBalling('auto', 'romana', 'direct', false), 'late');
+  assert.equal(resolveBalling('late', 'napoli', 'direct', false), 'late');
+  assert.equal(resolveBalling('early', 'napoli', 'direct', true), 'early');
+});
+
+test('early warm balling reallocates bulk time without changing start or bake time', () => {
+  for (const folds of [0, 1, 3]) {
+    const config = { ...settings, method: 'direct', place: 'room', bulkHours: 18, proofHours: 4, folds };
+    const late = buildSteps(config), early = buildSteps({ ...config, balling: 'early' });
+    assert.equal(early[0].at, late[0].at);
+    assert.equal(early.at(-1).at, late.at(-1).at);
+    assert.equal(early.some(step => step.id === 'stock'), false);
+    const ballAt = early.find(step => step.id === 'ball').at;
+    assert.equal(config.bakeAt - ballAt, 22 * 3600000);
+    if (folds) assert.equal(ballAt - early.find(step => step.id === `fold-${folds}`).at, 30 * 60000);
+    assert.ok(early.every((step, i) => i === 0 || step.at >= early[i-1].at));
+  }
+});
+
+test('early cold balling preserves cold and warm hours, including early and late actions', () => {
+  const config = { ...settings, balling: 'early' };
+  const steps = buildSteps(config);
+  const ball = steps.find(step => step.id === 'ball'), warm = steps.find(step => step.id === 'warm');
+  assert.equal(warm.at - ball.at, 24 * 3600000);
+  assert.equal(config.bakeAt - warm.at, 4 * 3600000);
+  assert.ok(ball.detail.includes('sofort'));
+  const initial = { ...run(), balling: 'early', steps };
+  const early = completeStep(initial, steps[0].id, steps[0].at - 2 * 3600000);
+  assert.equal(early.steps.find(step => step.id === 'warm').at, warm.at);
+  assert.ok(early.steps.find(step => step.id === 'ball').detail.includes('portionieren'));
+  assert.equal(early.bakeAt, initial.bakeAt);
+  const later = completeStep(initial, 'ball', ball.at + 3600000);
+  assert.equal(later.steps.find(step => step.id === 'warm').at, warm.at + 3600000);
+  assert.equal(later.bakeAt, initial.bakeAt + 3600000);
+  assert.equal(later.originalBakeAt, initial.originalBakeAt);
+});
+
+const { hasOrderedHistory } = require('../src/app/runState.ts');
+test('early confirmed actions stay restorable using actual history timestamps', () => {
+  for (const balling of ['early', 'late']) {
+    let active = { ...run(), balling, steps: buildSteps({ ...settings, balling }) };
+    const actual = active.startedAt - 2 * 3600000;
+    for (const step of active.steps) {
+      active = completeStep(active, step.id, actual);
+      assert.equal(hasOrderedHistory(active), true, `${balling}: ${step.id}`);
+    }
+  }
+  const initial = run();
+  assert.equal(hasOrderedHistory({ ...initial, steps: [...initial.steps].reverse() }), false);
+});

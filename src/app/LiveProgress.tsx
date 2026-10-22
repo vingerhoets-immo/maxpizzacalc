@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ingredients, yeastEstimate } from './doughMath';
 import { ActiveRun, DoughPlan, stamp } from './doughPlan';
-import { completeStep, postponeRemaining } from './runState';
+import { completeStep, postponeRemaining, hasOrderedHistory } from './runState';
 import ReadinessCheck from './ReadinessCheck';
 import { remaining, runProgress } from './runProgress';
 export type { ActiveRun, DoughPlan } from './doughPlan';
@@ -18,7 +18,8 @@ function readRun(): ActiveRun | null {
     if (!value || numeric.some(key => !Number.isFinite(value[key])) || !value.recipe || recipeFields.some(key => !Number.isFinite(value.recipe[key]))) return null;
     if (typeof value.serveAt !== 'string' || !value.completed || typeof value.completed !== 'object' || typeof value.cold !== 'boolean') return null;
     if (!['direct', 'poolish'].includes(value.method) || !['napoli', 'romana'].includes(value.recipe.style)) return null;
-    if (!Array.isArray(value.steps) || value.steps.length < 4 || value.steps.some((step: { id: string; at: number; title: string }, index: number) => !step.id || !Number.isFinite(step.at) || typeof step.title !== 'string' || (index > 0 && step.at < value.steps[index - 1].at))) return null;
+    if (!Array.isArray(value.steps) || value.steps.length < 4 || value.steps.some((step: { id: string; at: number; title: string }) => !step.id || !Number.isFinite(step.at) || typeof step.title !== 'string')) return null;
+    if (Object.values(value.completed).some(at => !Number.isFinite(at)) || !hasOrderedHistory(value)) return null;
     return { ...value, observations: Array.isArray(value.observations) ? value.observations : [] };
   } catch { return null; }
 }
@@ -53,12 +54,12 @@ export default function LiveProgress({ plan, onResume, onRunChange }: {
   if (!run) {
     if (!plan) return null;
     const expired = now !== null && plan.bakeAt <= now;
-    return <div className="run-start"><div><strong>{expired ? 'Der Backtermin ist vorbei.' : 'Bereit für den ersten Schritt?'}</strong><p>{expired ? 'Wähle einen neuen Backtermin.' : `Starte den Zeitstrahl, wenn du jetzt ${plan.method === 'poolish' ? 'den Poolish ansetzt' : 'den Teig mischst'}.`}</p></div><button type="button" className="btn start-primary" disabled={expired} onClick={() => {
+    return <div className="start-dock-spacer"><div className="run-start start-dock"><div><strong>{expired ? 'Der Backtermin ist vorbei.' : `Backen ${stamp(plan.bakeAt)}`}</strong><p>{expired ? 'Wähle einen neuen Backtermin.' : `Starte den Zeitstrahl, wenn du jetzt ${plan.method === 'poolish' ? 'den Poolish ansetzt' : 'den Teig mischst'}.`}</p></div><button type="button" className="btn start-primary" disabled={expired} onClick={() => {
       const startedAt = Date.now(); if (startedAt >= plan.bakeAt) return;
       const base: ActiveRun = { ...plan, startedAt, originalBakeAt: plan.bakeAt, completed: {}, observations: [] };
       const started = completeStep(base, base.steps[0].id, startedAt);
       save(started); onResume(started);
-    }}>Starten <span aria-hidden="true">→</span></button></div>;
+    }}>Starten <span aria-hidden="true">→</span></button></div></div>;
   }
 
   const current = now ?? run.startedAt;
@@ -68,7 +69,7 @@ export default function LiveProgress({ plan, onResume, onRunChange }: {
   const phase = next ? previous?.phase ?? 'Erster Schritt' : 'Alle Schritte erledigt';
   const overdue = next && current > next.at;
   const label = !next ? 'Fertig' : overdue ? `seit ${remaining(current - next.at)} fällig` : `in ${remaining(next.at - current)}`;
-  const ballAt = run.steps.find(step => step.id === 'ball')?.at ?? run.bakeAt;
+  const ballAt = run.completed.ball ?? run.steps.find(step => step.id === 'ball')?.at ?? run.bakeAt;
   const shifted = Math.abs(run.bakeAt - run.originalBakeAt) > 60000;
   const estimate = yeastEstimate({ mode: run.cold ? 'cold' : 'rt', temperature: run.temperature, roomTemperature: run.roomTemperature, bulkHours: run.bulkHours, proofHours: run.proofHours, folds: run.folds, method: run.method, poolishHours: run.poolishHours, poolishPercent: run.poolishPercent });
   const amounts = ingredients(run.recipe, run.method, run.poolishPercent, estimate.poolishPercent);
@@ -89,7 +90,7 @@ export default function LiveProgress({ plan, onResume, onRunChange }: {
     {storageError && <p className="live-warning">Dieser Browser kann den Teig gerade nicht speichern. Lasse die Seite geöffnet, damit der Verlauf erhalten bleibt.</p>}
     {shifted && <p className="live-warning">Dein Zieltermin bleibt {stamp(run.originalBakeAt)}. Mit den tatsächlich ausgeführten Schritten ergibt sich {stamp(run.bakeAt)}. {run.bakeAt < run.originalBakeAt ? 'Für den späteren Zieltermin ist eine kühlere Zwischenlagerung sinnvoll; prüfe die Teigreife.' : 'Die vorgesehenen Ruhezeiten wurden beibehalten.'}</p>}
     {run.startedAt < run.steps[0].at - 30 * 60000 && <p className="live-warning">Du hast früher begonnen als geplant. Kontrolliere die Reife vor dem nächsten Schritt.</p>}
-    {next && <ReadinessCheck key={next.id} poolish={previous?.id === 'poolish'} cold={previous?.id === 'stock' && run.cold} onSave={observation => save({ ...run, observations: [...run.observations, observation] })} onPostpone={() => save(postponeRemaining(run, 30))}/>}
+    {next && <ReadinessCheck key={next.id} poolish={previous?.id === 'poolish'} cold={run.cold && (previous?.id === 'stock' || (run.balling === 'early' && previous?.id === 'ball'))} onSave={observation => save({ ...run, observations: [...run.observations, observation] })} onPostpone={() => save(postponeRemaining(run, 30))}/>}
     <details className="run-recipe"><summary>Rezept und Verlauf dieses Teigs</summary><p>{run.recipe.pizzas} × {run.recipe.weight} g · {run.recipe.hydration} % Wasser · {run.recipe.whole} % Vollkorn</p>
       {run.method === 'poolish' && <p><b>Poolish:</b> {grams(amounts.poolish.white)} g helles Mehl · {grams(amounts.poolish.water)} ml Wasser · {grams(amounts.poolish.yeast)} g Instanthefe</p>}
       <p><b>{run.method === 'poolish' ? 'Hauptteig zusätzlich' : 'Zutaten'}:</b> {grams(amounts.main.white)} g helles Mehl · {grams(amounts.whole)} g Vollkorn · {grams(amounts.main.water)} ml Wasser · {grams(amounts.main.yeast)} g Instanthefe · {grams(amounts.salt)} g Salz · {grams(amounts.oil)} g Öl{amounts.sugar > 0 ? ` · ${grams(amounts.sugar)} g Zucker` : ''}</p>
