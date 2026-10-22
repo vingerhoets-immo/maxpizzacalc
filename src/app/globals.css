@@ -31,3 +31,38 @@ article.comic > .p-3 > .flex > span:not(.chip) { position:relative; z-index:0; d
 body:has(.theme-ledger) { background:#efe4d3; } body:has(.theme-ledger) .theme-ledger { min-height:100vh; }
 .app-shell nav { position:relative; z-index:2; }.app-shell .tab.active { position:relative; z-index:1; margin-bottom:-3px; }.app-shell nav + .comic { position:relative; z-index:1; margin-top:-3px; }.app-shell nav:has(.tab:first-child.active) + .comic { border-top-left-radius:0; }.app-shell nav:has(.tab:last-child.active) + .comic { border-top-right-radius:0; }
 .theme-ledger .tab.active { margin-bottom:-1px; }.theme-ledger nav + .comic { margin-top:-1px; }
+
+/* Live dough timeline: the fill follows wall-clock time; the glow only marks the active run. */
+.live-progress { margin:0 0 1.25rem; padding:1rem; overflow:hidden; background:#fffdf7; }
+.live-progress-head, .live-progress-main, .live-milestones { display:flex; justify-content:space-between; gap:1rem; }
+.live-progress-head { align-items:center; margin-bottom:1rem; }
+.live-badge { display:inline-flex; align-items:center; gap:.45rem; color:#7d3525; font-size:.67rem; font-weight:900; letter-spacing:.09em; }
+.live-dot { width:.55rem; height:.55rem; border-radius:50%; background:#df5736; box-shadow:0 0 0 4px rgba(223,87,54,.14); animation:live-pulse 2.4s ease-in-out infinite; }
+.live-style { color:#6c625c; font-size:.72rem; text-align:right; }
+.live-progress-main { align-items:flex-end; margin-bottom:1.25rem; }
+.live-kicker { margin:0 0 .2rem; color:#796d61; font-size:.72rem; }
+.live-progress h2 { margin:0; font-family:var(--font-archivo),sans-serif; font-size:1.2rem; line-height:1.2; }
+.live-next { margin:.5rem 0 0; font-size:.78rem; line-height:1.35; }
+.live-countdown { display:grid; justify-items:end; flex:none; text-align:right; }
+.live-countdown span { color:#bb442d; font-family:var(--font-archivo),sans-serif; font-size:1.16rem; white-space:nowrap; }
+.live-countdown small { margin-top:.18rem; color:#6c625c; font-size:.7rem; }
+.live-track { height:12px; overflow:hidden; border-radius:999px; background:#e8e1d7; box-shadow:inset 0 1px 2px rgba(43,33,27,.12); }
+.live-fill { position:relative; height:100%; border-radius:inherit; background:linear-gradient(90deg,#df7851 0%,#d65b39 55%,#b83f2c 100%); transition:width 1s linear; }
+.live-fill:after { content:''; position:absolute; inset:0; background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.32) 50%,transparent 80%); background-size:160px 100%; animation:live-shine 4s linear infinite; }
+.live-milestones { margin-top:.55rem; color:#716960; font-size:.66rem; line-height:1.35; }
+.live-milestones span:last-child { text-align:right; }
+.live-milestones span:nth-child(2) { text-align:center; }
+.live-milestones b { color:#342b26; font-size:.68rem; }
+.live-note { margin:.85rem 0 0; color:#756d67; font-size:.7rem; line-height:1.4; }
+.live-warning { margin:.7rem 0 0; padding:.5rem .65rem; border-radius:7px; background:#fff0cd; color:#65471c; font-size:.72rem; line-height:1.4; }
+.live-end { margin-top:.75rem; border:0; background:transparent; color:#806f65; padding:.15rem 0; font-size:.7rem; text-decoration:underline; text-underline-offset:2px; }
+.run-start { display:flex; justify-content:space-between; align-items:center; gap:.75rem; margin-bottom:1.25rem; padding:.75rem; border:1px solid #d8cabb; border-radius:11px; background:#f8f2e7; }
+.run-start strong { font-size:.82rem; }.run-start p { margin:.15rem 0 0; color:#6c625c; font-size:.72rem; line-height:1.3; }
+.run-start .btn { flex:none; font-size:.75rem; }
+.theme-ledger .live-progress { background:#fffdf9; }
+.theme-ledger .run-start { background:#f8f2e7; }
+@keyframes live-pulse { 50% { box-shadow:0 0 0 7px rgba(223,87,54,0); } }
+@keyframes live-shine { to { background-position:160px 0; } }
+@media (max-width:540px) { .live-progress-main { display:block; }.live-countdown { justify-items:start; margin-top:.9rem; text-align:left; }.live-countdown span { font-size:1.5rem; }.run-start { display:block; }.run-start .btn { margin-top:.65rem; width:100%; }.live-milestones { gap:.3rem; } }
+@media (prefers-reduced-motion:reduce) { .live-dot, .live-fill:after { animation:none; }.live-fill { transition:none; } }
+.run-start .btn:disabled { cursor:not-allowed; opacity:.5; box-shadow:none; }
