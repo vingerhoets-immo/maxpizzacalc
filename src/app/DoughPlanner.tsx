@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import LiveProgress from './LiveProgress';
+import BakeDateTime from './BakeDateTime';
 import { ActiveRun, DoughPlan, buildSteps, Method, stamp } from './doughPlan';
 import { ingredients, Recipe, yeastEstimate } from './doughMath';
 
@@ -21,7 +22,6 @@ type Props = {
   onRunningViewChange: (value: boolean) => void;
 };
 
-const times = Array.from({ length: 96 }, (_, i) => `${String(Math.floor(i / 4)).padStart(2, '0')}:${String(i % 4 * 15).padStart(2, '0')}`);
 const grams = (value: number) => value.toLocaleString('de-DE', { maximumFractionDigits: value < 2 ? 2 : 1 });
 
 export default function DoughPlanner(p: Props) {
@@ -49,9 +49,10 @@ export default function DoughPlanner(p: Props) {
 
   return <section className="planner-shell">
     {active && <div className="process-switch" role="group" aria-label="Ansicht"><button type="button" className={view === 'plan' ? 'selected' : ''} onClick={() => setView('plan')}>Pizza planen</button><button type="button" className={view === 'run' ? 'selected' : ''} onClick={() => setView('run')}>Mein Teig läuft</button></div>}
+    <div hidden={active !== null && view !== 'run'}><LiveProgress plan={plan} onResume={restore} onRunChange={value => { setActive(value); if (!value) setView('plan'); }}/></div>
     <div hidden={view === 'run'} className="comic p-4 mb-4">
       <h2 className="section-title">Wann backen wir?</h2><p className="planner-hint">Der erste Teigling kommt zu dieser Uhrzeit in den Ofen. Alle Schritte werden davon zurückgerechnet.</p>
-      <div className="bake-time"><label>Backdatum<input type="date" value={date} onChange={event => p.setServeAt(event.target.value ? `${event.target.value}T${time}` : '')}/></label><label>Pizza in den Ofen um<select value={time} onChange={event => date && p.setServeAt(`${date}T${event.target.value}`)}>{times.map(value => <option key={value}>{value}</option>)}</select></label></div>
+      <BakeDateTime value={p.serveAt} onChange={p.setServeAt}/>
       {lead !== null && <div className="planner-advice"><strong>{lead < 6 + extra ? 'Für diesen Ablauf ist die Zeit knapp' : suggestedCold ? `Empfehlung: ${suggestedBulk} Stunden kalt` : 'Empfehlung: Führung bei Raumtemperatur'}</strong><p>{suggestedCold ? 'Kalte Stockgare passt in den verfügbaren Vorlauf. Danach sind vier Stunden für geformte Teiglinge bei Raumtemperatur eingeplant.' : 'Ein zusätzlicher Kühlschrankaufenthalt würde wenig Zeit für die anschließende warme Stückgare lassen. Für die schnelle Variante ist Direktteig einfacher.'}</p><button type="button" className="btn small alt" onClick={() => { p.setAutoYeast(true); p.setMode(suggestedCold ? 'cold' : 'rt'); p.setTemp(suggestedCold ? 4 : p.roomTemp); p.setBulk(suggestedBulk); p.setProof(suggestedCold ? 4 : 3); if (!suggestedCold) p.setMethod('direct'); }}>Empfehlung übernehmen</button></div>}
       <h3 className="planner-label">Dein Weg zum Teig</h3><div className="planner-choice"><button type="button" aria-pressed={p.method === 'direct'} className={'btn small ' + (p.method === 'direct' ? '' : 'alt')} onClick={() => p.setMethod('direct')}>Direktteig</button><button type="button" aria-pressed={p.method === 'poolish'} className={'btn small ' + (p.method === 'poolish' ? '' : 'alt')} onClick={() => p.setMethod('poolish')}>Mit Poolish</button></div><p className="planner-hint">{p.method === 'direct' ? 'Ein Ansatz, weniger Handgriffe. Eine gute Ausgangsbasis, um deine Gare kennenzulernen.' : 'Ein zusätzlicher Vorteig für Aroma und Dehnbarkeit. Erst mit vielen Blasen und deutlicher Volumenzunahme weiterverarbeiten.'}</p>
       <div className="planner-choice"><button type="button" aria-pressed={p.mode === 'rt'} className={'chip ' + (p.mode === 'rt' ? 'selected' : '')} onClick={() => { p.setMode('rt'); p.setTemp(p.roomTemp); p.setBulk(Math.min(20, p.bulk)); p.setProof(Math.max(2, p.proof)); }}>Raumtemperatur</button><button type="button" aria-pressed={p.mode === 'cold'} className={'chip ' + (p.mode === 'cold' ? 'selected' : '')} onClick={() => { p.setMode('cold'); p.setTemp(4); p.setBulk(Math.max(8, p.bulk)); p.setProof(Math.min(6, p.proof)); }}>Kühlschrank</button></div>
@@ -72,6 +73,5 @@ export default function DoughPlanner(p: Props) {
       {planned && <div className="schedule-review"><h3 className="planner-label">Dein Zeitplan</h3><p className="planner-hint">Gesamter Vorlauf: {((bakeAt - steps[0].at) / 3600000).toLocaleString('de-DE', { maximumFractionDigits: 1 })} Stunden einschließlich Vorbereitung{p.method === 'poolish' ? ' und Poolish' : ''}.</p>{startPassed && !active && <p className="live-warning">Der erste Schritt liegt bereits zurück. Wähle eine kürzere Führung oder einen späteren Backtermin, wenn du noch nicht begonnen hast.</p>}{nightStep && <p className="live-warning">{nightStep.title} liegt nachts ({stamp(nightStep.at)}). Eine andere Garzeit kann den Handgriff günstiger legen.</p>}<ol className="planner-steps">{steps.map(step => <li key={step.id}><time>{stamp(step.at)}</time><div><strong>{step.title}</strong><p>{step.detail}</p></div></li>)}</ol></div>}
       {active && <div className="planner-advice"><strong>Ein Teig läuft bereits.</strong><p>Änderungen hier sind ein neuer Entwurf. Der laufende Teig behält seine Zutaten und Uhrzeiten.</p><button type="button" className="btn small" onClick={() => setView('run')}>Zum laufenden Teig</button></div>}
     </div>
-    <div hidden={active !== null && view !== 'run'}><LiveProgress plan={plan} onResume={restore} onRunChange={value => { setActive(value); if (!value) setView('plan'); }}/></div>
   </section>;
 }

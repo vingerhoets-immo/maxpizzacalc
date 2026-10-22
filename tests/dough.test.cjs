@@ -88,3 +88,33 @@ test('early poolish start keeps its own ripening time and absorbs extra time in 
   assert.equal(early.steps.find(s => s.id === 'ball').at, initial.steps.find(s => s.id === 'ball').at);
   assert.equal(early.bakeAt, initial.bakeAt);
 });
+
+const { runProgress, remaining } = require('../src/app/runProgress.ts');
+test('rapid confirmations advance each segment evenly instead of jumping at the end', () => {
+  let active = run();
+  const at = active.startedAt;
+  active = completeStep(active, active.steps[0].id, at);
+  close(runProgress(active, at).percent, 0);
+  for (let i = 1; i < active.steps.length; i++) {
+    active = completeStep(active, active.steps[i].id, at);
+    close(runProgress(active, at).percent, i / (active.steps.length - 1) * 100);
+  }
+});
+
+test('time interpolates within the phase but cannot confirm an action', () => {
+  const initial = run();
+  const active = completeStep(initial, initial.steps[0].id, initial.startedAt);
+  const middle = (active.startedAt + active.steps[1].at) / 2;
+  close(runProgress(active, middle).segments[0], .5);
+  assert.ok(runProgress(active, middle + 1000).percent > runProgress(active, middle).percent);
+  close(runProgress(active, active.bakeAt + 86400000).segments[0], .95);
+  assert.ok(runProgress(active, active.bakeAt + 86400000).percent < 100);
+});
+
+test('countdown always displays seconds including days and overdue boundaries', () => {
+  assert.equal(remaining(86400000 + 3661000), '1 T · 01:01:01');
+  assert.equal(remaining(3600000), '01:00:00');
+  assert.equal(remaining(59999), '00:01:00');
+  assert.equal(remaining(59000), '00:00:59');
+  assert.equal(remaining(-1), '00:00:00');
+});

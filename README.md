@@ -44,10 +44,12 @@ Auf dem iPhone in Safari öffnen → **Teilen → Zum Home-Bildschirm**. Desktop
 
 ## Teig planen und begleiten
 
+Backdatum und Uhrzeit werden über einen eigenen Kalender mit Schnellwahl sowie eine Stunden-/Minutenauswahl gesetzt. Beliebige Minuten sind direkt als HH:MM eingebbar. Nach Wahl eines Backtermins steht „Starten“ prominent oberhalb des Planers.
+
 - Zwei Profile: neapolitanisch sowie dünn und knusprig mit 3–5 Minuten Backzeit; Vollkornanteil und Wasser bleiben anpassbar.
 - Direktteig oder Poolish sind unabhängig von Raumtemperatur oder kalter Führung wählbar. Die Knöpfe „24 h“ und „48 h“ bezeichnen ausdrücklich die kalte Stockgare. Vorbereitung, Poolish und warme Stückgare kommen hinzu.
 - Der Rückwärtsplan enthält Mischen, volle Ruheintervalle vor und zwischen 0–3 Faltzyklen, Stockgare, Teiglinge, Vorheizen und Backen. Stunden sind echte verstrichene Stunden, auch über die Zeitumstellung.
-- Nach dem Start wechselt die App in „Mein Teig läuft“. Der Zeitbalken bewegt sich ohne Neuladen; beim Zurückkehren wird die Uhrzeit neu abgeglichen. Ausgeführte Schritte und Reifeprüfungen werden mit Zeitstempel gespeichert.
+- Nach dem Start wechselt die App in „Mein Teig läuft“. Der segmentierte Ablaufbalken gibt jeder Phase gleich viel Platz: Bestätigte Handgriffe schließen ein Segment ab, die Wartezeit bewegt das aktuelle Segment kontinuierlich weiter. Ohne Bestätigung bleibt ein fälliges Segment bei höchstens 95 %. Der Countdown zeigt Tage und HH:MM:SS ohne Neuladen; beim Zurückkehren wird die Uhrzeit neu abgeglichen. Der Balken beschreibt den Ablauf, nicht den biologischen Reifegrad. Ausgeführte Schritte und Reifeprüfungen werden mit Zeitstempel gespeichert.
 - Ein später Handgriff verschiebt die verbleibenden Ruhezeiten. Der ursprünglich gewünschte Backtermin bleibt separat sichtbar. Ein früher Start vor einer kalten Stockgare kann den zusätzlichen Vorlauf in die kalte Phase legen.
 - Der laufende Teig ist ein eingefrorener Stand von Rezept und Ablauf im lokalen Browser. Ein neuer Planentwurf verändert ihn nicht. Presets speichern Rezept und Führung über die bestehende Neon-API; ältere reine Rezept-Presets bleiben ladbar.
 

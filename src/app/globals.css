@@ -101,3 +101,40 @@ body:has(.theme-ledger) { background:#efe4d3; } body:has(.theme-ledger) .theme-l
 .preset-save { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:.65rem; margin-top:1rem; }
 .preset-save label { display:grid; gap:.3rem; font-size:.8rem; }.preset-save input { width:100%; }.preset-save button { font-size:.8rem; }.preset-save button:disabled { cursor:not-allowed; opacity:.5; box-shadow:none; }.preset-save p { grid-column:1/-1; margin:0; font-size:.78rem; }
 @media (max-width:540px) { .preset-save { grid-template-columns:1fr; } }
+
+/* Backtermin: eigene Kalender- und Zeitauswahl, auch auf Mobilgeräten. */
+.bake-picker { position:relative; margin:1rem 0; }
+.bake-picker-fields { display:grid; grid-template-columns:1.2fr 1fr; gap:.65rem; }
+.bake-field { display:grid; gap:.35rem; min-width:0; padding:1rem; text-align:left; border:1px solid #d8cabb; border-radius:15px; background:#fffdf9; color:#342b26; transition:border-color .2s,box-shadow .2s; }
+.bake-field:hover,.bake-field.is-open { border-color:#bd3e2e; box-shadow:0 0 0 3px #bd3e2e10; }
+.bake-field > span,.picker-label { font-size:.62rem; letter-spacing:.09em; font-weight:800; color:#8a7567; }
+.bake-field > strong { font-family:var(--font-archivo),sans-serif; font-size:1.22rem; letter-spacing:-.035em; font-variant-numeric:tabular-nums; }
+.bake-field em { font:inherit; font-size:.75rem; font-style:normal; color:#8a7567; letter-spacing:0; }
+.bake-field small { color:#796d61; font-size:.7rem; display:flex; justify-content:space-between; }
+.bake-popover { position:absolute; left:0; top:calc(100% + .55rem); z-index:30; width:min(100%,360px); padding:1rem; border:1px solid #e6dcd0; border-radius:20px; background:#fffdf9; box-shadow:0 18px 55px #342b2626,0 3px 12px #342b260a; animation:picker-appear .15s ease-out; }
+.bake-popover button { cursor:pointer; touch-action:manipulation; }
+.calendar-nav { display:flex; justify-content:space-between; align-items:center; margin-bottom:.8rem; gap:.5rem; }
+.calendar-nav strong { font-size:.86rem; }.calendar-nav button { border:0; border-radius:10px; background:#f3ede5; width:34px; height:34px; font-size:1.4rem; }
+.calendar-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:3px; }
+.calendar-weekday { text-align:center; color:#8a7567; font-size:.65rem; padding:.3rem 0; }
+.calendar-grid button { position:relative; aspect-ratio:1; border:0; border-radius:50%; background:transparent; color:#342b26; font-size:.78rem; font-variant-numeric:tabular-nums; }
+.calendar-grid button:hover { background:#f1e8de; }.calendar-grid button.muted { color:#b9afa4; }
+.calendar-grid button.today:after { content:''; position:absolute; bottom:13%; left:calc(50% - 2px); height:4px; width:4px; border-radius:50%; background:currentColor; }
+.bake-popover button.selected { background:#bd3e2e; color:white; box-shadow:0 3px 8px #bd3e2e26; }
+.picker-shortcuts { display:flex; gap:.4rem; border-top:1px solid #eee5db; padding-top:.8rem; margin-top:.6rem; }
+.picker-shortcuts button { flex:1; padding:.55rem .2rem; border:0; border-radius:9px; background:#f3ede5; font-size:.7rem; }
+.clock-popover { left:auto; right:0; }.clock-heading { display:flex; align-items:center; justify-content:space-between; gap:.65rem; }.clock-heading strong { font-size:.85rem; }.clock-heading p { margin:.25rem 0 0; color:#8a7567; font-size:.65rem; }
+.clock-heading input { width:5.5rem; flex:none; padding:.5rem; text-align:center; font-size:1.2rem; font-variant-numeric:tabular-nums; border:1px solid #d8cabb; border-radius:10px; background:#f8f2e7; }
+.picker-label { margin:.9rem 0 .4rem; }.clock-hours { display:grid; grid-template-columns:repeat(6,1fr); gap:.3rem; }.clock-hours button,.clock-minutes button { padding:.55rem .1rem; border:0; border-radius:9px; background:#f3ede5; color:#342b26; font-size:.75rem; font-variant-numeric:tabular-nums; }
+.clock-minutes { display:grid; grid-template-columns:repeat(4,1fr); gap:.3rem; }.picker-done { margin-top:1rem; width:100%; border:0; border-radius:10px; padding:.7rem; color:white; background:#bd3e2e; font-size:.8rem; font-weight:800; }
+.bake-picker :focus-visible { outline:2px solid #bd3e2e; outline-offset:3px; }
+@keyframes picker-appear { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
+.run-start,.theme-ledger .run-start { padding:1.1rem; background:#342b26; color:#fffdf9; border:0; border-radius:16px; box-shadow:0 8px 24px #342b2614; }
+.run-start strong { font-size:.95rem; }.run-start p { color:#d8cabb; max-width:28rem; line-height:1.5; }.run-start .start-primary { display:flex; justify-content:space-between; align-items:center; gap:1.75rem; padding:.85rem 1.15rem; min-width:145px; border:0; border-radius:11px; background:#bd3e2e; color:#fff; font-size:1rem; box-shadow:0 4px 12px #0002; }.start-primary span { font-size:1.3rem; }
+.live-countdown span,.live-countdown.overdue span { font-variant-numeric:tabular-nums; letter-spacing:-.025em; }
+.progress-caption { display:flex; justify-content:space-between; gap:.5rem; margin:1rem 0 .5rem; font-size:.7rem; color:#796d61; }.progress-caption strong { color:#bd3e2e; font-variant-numeric:tabular-nums; }
+.segmented-track { display:flex; gap:5px; height:14px; overflow:visible; border-radius:0; background:none; box-shadow:none; }
+.progress-segment { flex:1; min-width:0; overflow:hidden; border-radius:999px; background:#e8e1d7; box-shadow:inset 0 1px 2px #2b211b12; }.progress-segment.current { box-shadow:0 0 0 2px #df78512a; }.progress-segment .live-fill { min-width:0; }
+.progress-phase-labels { display:flex; gap:.4rem; margin:.75rem 0 1rem; overflow-x:auto; padding:.15rem 0 .4rem; scrollbar-width:thin; }.progress-phase-labels span { flex:1; min-width:55px; color:#9a8c7e; font-size:.6rem; line-height:1.35; }.progress-phase-labels i { display:block; width:19px; height:19px; margin-bottom:.3rem; border-radius:50%; background:#f0e9e0; text-align:center; line-height:19px; font-size:.6rem; font-style:normal; }.progress-phase-labels .done { color:#55734f; }.progress-phase-labels .done i { color:#fff; background:#55734f; }.progress-phase-labels .current { color:#a73525; font-weight:800; }.progress-phase-labels .current i { color:#fff; background:#bd3e2e; }
+@media (max-width:540px) { .bake-field { padding:.8rem; }.bake-field > strong { font-size:1.06rem; }.run-start .start-primary { margin-top:.8rem; }.progress-phase-labels { gap:.35rem; }.live-countdown span { font-size:1.6rem; } }
+@media (prefers-reduced-motion:reduce) { .bake-popover { animation:none; } }
