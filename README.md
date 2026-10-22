@@ -39,4 +39,30 @@ Auf dem iPhone in Safari öffnen → **Teilen → Zum Home-Bildschirm**. Desktop
 ## Hinweise
 
 - Fotos werden derzeit als Base64 direkt in Neon gespeichert. Für große oder viele Fotos empfiehlt sich später ein Wechsel auf Vercel Blob; das Schema-Feld `photo` ist dafür bereits vorgesehen.
-- Die Teigberechnung verwendet Baker's Math mit Mehl als 100%-Basis. Öl und Wasser werden millilitergenau näherungsweise wie Gramm behandelt.
+- Die Teigberechnung verwendet Baker's Math mit Mehl als 100%-Basis. Öl wird in Gramm ausgewiesen; Wasser in Millilitern entspricht näherungsweise demselben Gewicht in Gramm.
+
+
+## Teig planen und begleiten
+
+- Zwei Profile: neapolitanisch sowie dünn und knusprig mit 3–5 Minuten Backzeit; Vollkornanteil und Wasser bleiben anpassbar.
+- Direktteig oder Poolish sind unabhängig von Raumtemperatur oder kalter Führung wählbar. Die Knöpfe „24 h“ und „48 h“ bezeichnen ausdrücklich die kalte Stockgare. Vorbereitung, Poolish und warme Stückgare kommen hinzu.
+- Der Rückwärtsplan enthält Mischen, volle Ruheintervalle vor und zwischen 0–3 Faltzyklen, Stockgare, Teiglinge, Vorheizen und Backen. Stunden sind echte verstrichene Stunden, auch über die Zeitumstellung.
+- Nach dem Start wechselt die App in „Mein Teig läuft“. Der Zeitbalken bewegt sich ohne Neuladen; beim Zurückkehren wird die Uhrzeit neu abgeglichen. Ausgeführte Schritte und Reifeprüfungen werden mit Zeitstempel gespeichert.
+- Ein später Handgriff verschiebt die verbleibenden Ruhezeiten. Der ursprünglich gewünschte Backtermin bleibt separat sichtbar. Ein früher Start vor einer kalten Stockgare kann den zusätzlichen Vorlauf in die kalte Phase legen.
+- Der laufende Teig ist ein eingefrorener Stand von Rezept und Ablauf im lokalen Browser. Ein neuer Planentwurf verändert ihn nicht. Presets speichern Rezept und Führung über die bestehende Neon-API; ältere reine Rezept-Presets bleiben ladbar.
+
+### Berechnungsgrundlage
+
+`doughMath.ts` hält Mengenbilanz, Wasserorientierung und Hefeschätzung getrennt von der Oberfläche. Poolish besteht aus gleich schweren Anteilen hellem Mehl und Wasser; Vollkorn, Salz und Öl werden im Hauptteig ergänzt. Alle Anteile werden von den Gesamtmengen abgezogen.
+
+Die Hefewerte sind Startwerte der App. Als Bezug für die kalte Rezeptur dient [Oonis Cold-Proof Pizza Dough](https://ooni.com/blogs/recipes/cold-prove-pizza-dough) (1,4 g Instanthefe auf 607 g Mehl). Für den Poolish dient die [ASB-Tabelle](https://asbe.org/article/poolish/) als zeitabhängiger Bezug; Frischhefe wird näherungsweise durch drei geteilt. Interpolation und Temperaturkorrekturen sind App-Schätzungen und keine validierte Vorhersage des Reifegrades. Mehl, Kühlverlauf und tatsächliche Teigtemperatur müssen beim Backen beobachtet werden.
+
+### Prüfen
+
+```bash
+npm test
+npm run lint
+npm run build
+```
+
+Die gezielten Tests prüfen Mengenbilanz mit Vollkorn/Poolish, echte Garstunden über die Zeitumstellung sowie frühe und verspätete Handgriffe bei unverändertem Zieltermin. Build und Entwicklungsserver nacheinander ausführen, da beide `.next` verwenden.

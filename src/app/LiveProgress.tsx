@@ -1,111 +1,103 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { ingredients, yeastEstimate } from './doughMath';
+import { ActiveRun, DoughPlan, stamp } from './doughPlan';
+import { completeStep, postponeRemaining } from './runState';
+import ReadinessCheck from './ReadinessCheck';
+export type { ActiveRun, DoughPlan } from './doughPlan';
 
-type Recipe = {
-  style: 'napoli' | 'romana';
-  pizzas: number;
-  weight: number;
-  hydration: number;
-  salt: number;
-  yeast: number;
-  oil: number;
-  sugar: number;
-  whole: number;
-};
-
-export type DoughPlan = {
-  bakeAt: number;
-  serveAt: string;
-  bulkHours: number;
-  proofHours: number;
-  cold: boolean;
-  style: 'napoli' | 'romana';
-  temperature: number;
-  recipe: Recipe;
-};
-
-export type ActiveRun = DoughPlan & { startedAt: number };
-
-const STORAGE_KEY = 'pizza-hq-active-dough-v2';
-const HOUR = 60 * 60 * 1000;
+const STORAGE_KEY = 'pizza-hq-active-dough-v4';
 
 function readRun(): ActiveRun | null {
   try {
     const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-    if (
-      value && Number.isFinite(value.bakeAt) && typeof value.serveAt === 'string' &&
-      Number.isFinite(value.temperature) && value.recipe && Number.isFinite(value.recipe.hydration) &&
-      Number.isFinite(value.bulkHours) &&
-      Number.isFinite(value.proofHours) && Number.isFinite(value.startedAt) &&
-      typeof value.cold === 'boolean' && (value.style === 'napoli' || value.style === 'romana')
-    ) return value;
-  } catch { /* A damaged local entry should not block the calculator. */ }
-  return null;
-}
-
-function clock(value: number) {
-  return new Intl.DateTimeFormat('de-DE', { weekday: 'short', hour: '2-digit', minute: '2-digit' }).format(value);
+    const numeric = ['bakeAt', 'bulkHours', 'proofHours', 'startedAt', 'originalBakeAt', 'folds', 'poolishHours', 'poolishPercent', 'roomTemperature', 'temperature'];
+    const recipeFields = ['pizzas', 'weight', 'hydration', 'salt', 'yeast', 'oil', 'sugar', 'whole'];
+    if (!value || numeric.some(key => !Number.isFinite(value[key])) || !value.recipe || recipeFields.some(key => !Number.isFinite(value.recipe[key]))) return null;
+    if (typeof value.serveAt !== 'string' || !value.completed || typeof value.completed !== 'object' || typeof value.cold !== 'boolean') return null;
+    if (!['direct', 'poolish'].includes(value.method) || !['napoli', 'romana'].includes(value.recipe.style)) return null;
+    if (!Array.isArray(value.steps) || value.steps.length < 4 || value.steps.some((step: { id: string; at: number; title: string }, index: number) => !step.id || !Number.isFinite(step.at) || typeof step.title !== 'string' || (index > 0 && step.at < value.steps[index - 1].at))) return null;
+    return { ...value, observations: Array.isArray(value.observations) ? value.observations : [] };
+  } catch { return null; }
 }
 
 function remaining(value: number) {
-  const minutes = Math.max(0, Math.ceil(value / 60000));
-  const days = Math.floor(minutes / 1440);
-  const hours = Math.floor((minutes % 1440) / 60);
-  const mins = minutes % 60;
-  return [days && `${days} T`, hours && `${hours} Std`, (mins || (!days && !hours)) && `${mins} Min`].filter(Boolean).join(' ');
+  if (value < 60000) return `${Math.max(0, Math.ceil(value / 1000))} Sek`;
+  const minutes = Math.ceil(value / 60000);
+  const days = Math.floor(minutes / 1440), hours = Math.floor(minutes % 1440 / 60), mins = minutes % 60;
+  return [days && `${days} T`, hours && `${hours} Std`, mins && `${mins} Min`].filter(Boolean).join(' ');
 }
 
-export default function LiveProgress({ plan, onResume }: { plan: DoughPlan | null; onResume: (run: ActiveRun) => void }) {
+export default function LiveProgress({ plan, onResume, onRunChange }: {
+  plan: DoughPlan | null; onResume: (run: ActiveRun) => void; onRunChange: (run: ActiveRun | null) => void;
+}) {
   const [run, setRun] = useState<ActiveRun | null>(null);
   const [now, setNow] = useState<number | null>(null);
+  const [storageError, setStorageError] = useState(false);
+  const callbacks = useRef({ onResume, onRunChange });
+  callbacks.current = { onResume, onRunChange };
 
   useEffect(() => {
-    const sync = () => { const saved = readRun(); setNow(Date.now()); setRun(saved); if (saved) onResume(saved); };
-    const tick = () => setNow(Date.now());
-    sync();
+    const restore = () => { const saved = readRun(); setNow(Date.now()); setRun(saved); callbacks.current.onRunChange(saved); if (saved) callbacks.current.onResume(saved); };
+    const tick = () => { if (!document.hidden) setNow(Date.now()); };
+    const storage = (event: StorageEvent) => { if (event.key === STORAGE_KEY) restore(); };
+    restore();
     const interval = window.setInterval(tick, 1000);
     window.addEventListener('focus', tick);
-    window.addEventListener('storage', sync);
+    window.addEventListener('storage', storage);
     document.addEventListener('visibilitychange', tick);
-    return () => {
-      window.clearInterval(interval);
-      window.removeEventListener('focus', tick);
-      window.removeEventListener('storage', sync);
-      document.removeEventListener('visibilitychange', tick);
-    };
-  }, []); // Restore the saved plan once; later edits stay visible as a comparison.
+    return () => { window.clearInterval(interval); window.removeEventListener('focus', tick); window.removeEventListener('storage', storage); document.removeEventListener('visibilitychange', tick); };
+  }, []);
+
+  const save = (value: ActiveRun | null) => {
+    try { if (value) localStorage.setItem(STORAGE_KEY, JSON.stringify(value)); else localStorage.removeItem(STORAGE_KEY); setStorageError(false); }
+    catch { setStorageError(true); }
+    setRun(value); setNow(Date.now()); onRunChange(value);
+  };
 
   if (!run) {
     if (!plan) return null;
     const expired = now !== null && plan.bakeAt <= now;
-    return <div className="run-start"><div><strong>{expired ? 'Der Backtermin ist vorbei.' : 'Dein Zeitplan steht.'}</strong><p>{expired ? 'Wähle einen neuen Backtermin, um einen Teig zu starten.' : 'Wenn der Teig angesetzt ist, begleitet dich hier ein Live-Zeitstrahl.'}</p></div><button type="button" className="btn green" disabled={expired} onClick={() => { const startedAt = Date.now(); if (startedAt >= plan.bakeAt) return; const next = { ...plan, startedAt }; localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); setRun(next); setNow(startedAt); }}>Teig gestartet</button></div>;
+    return <div className="run-start"><div><strong>{expired ? 'Der Backtermin ist vorbei.' : 'Bereit für den ersten Schritt?'}</strong><p>{expired ? 'Wähle einen neuen Backtermin.' : `Starte den Zeitstrahl, wenn du jetzt ${plan.method === 'poolish' ? 'den Poolish ansetzt' : 'den Teig mischst'}.`}</p></div><button type="button" className="btn green" disabled={expired} onClick={() => {
+      const startedAt = Date.now(); if (startedAt >= plan.bakeAt) return;
+      const base: ActiveRun = { ...plan, startedAt, originalBakeAt: plan.bakeAt, completed: {}, observations: [] };
+      const started = completeStep(base, base.steps[0].id, startedAt);
+      save(started); onResume(started);
+    }}>Teig jetzt starten</button></div>;
   }
 
-  const mixAt = run.bakeAt - (run.bulkHours + run.proofHours + .5) * HOUR;
-  const stockAt = run.bakeAt - (run.bulkHours + run.proofHours) * HOUR;
-  const ballAt = run.bakeAt - run.proofHours * HOUR;
   const current = now ?? run.startedAt;
-  const progress = Math.max(0, Math.min(100, ((current - mixAt) / (run.bakeAt - mixAt)) * 100));
-  const next = current < stockAt
-    ? { label: 'Stockgare starten', at: stockAt, phase: 'Kneten & Ruhe' }
-    : current < ballAt
-      ? { label: 'Teiglinge formen', at: ballAt, phase: run.cold ? 'Kalte Stockgare' : 'Stockgare' }
-      : current < run.bakeAt
-        ? { label: 'Pizza backen', at: run.bakeAt, phase: 'Stückgare' }
-        : { label: 'Backzeit erreicht', at: run.bakeAt, phase: 'Bereit zum Backen' };
-  const label = current >= run.bakeAt ? 'Jetzt' : `in ${remaining(next.at - current)}`;
-  const changed = plan && (plan.bakeAt !== run.bakeAt || plan.bulkHours !== run.bulkHours || plan.proofHours !== run.proofHours || plan.cold !== run.cold || plan.style !== run.style || plan.temperature !== run.temperature || JSON.stringify(plan.recipe) !== JSON.stringify(run.recipe));
+  const next = run.steps.find(step => run.completed[step.id] === undefined);
+  const progress = next ? Math.max(0, Math.min(100, (current - run.startedAt) / (run.bakeAt - run.startedAt) * 100)) : 100;
+  const previous = [...run.steps].reverse().find(step => run.completed[step.id] !== undefined);
+  const phase = next ? previous?.phase ?? 'Erster Schritt' : 'Alle Schritte erledigt';
+  const overdue = next && current > next.at;
+  const label = !next ? 'Fertig' : overdue ? `seit ${remaining(current - next.at)} fällig` : `in ${remaining(next.at - current)}`;
+  const ballAt = run.steps.find(step => step.id === 'ball')?.at ?? run.bakeAt;
+  const shifted = Math.abs(run.bakeAt - run.originalBakeAt) > 60000;
+  const estimate = yeastEstimate({ mode: run.cold ? 'cold' : 'rt', temperature: run.temperature, roomTemperature: run.roomTemperature, bulkHours: run.bulkHours, proofHours: run.proofHours, folds: run.folds, method: run.method, poolishHours: run.poolishHours, poolishPercent: run.poolishPercent });
+  const amounts = ingredients(run.recipe, run.method, run.poolishPercent, estimate.poolishPercent);
+  const grams = (value: number) => value.toLocaleString('de-DE', { maximumFractionDigits: value < 2 ? 2 : 1 });
 
-  return <section className="live-progress comic" aria-label="Laufender Teig und Zeitfortschritt">
-    <div className="live-progress-head"><span className="live-badge"><span className="live-dot"/> DEIN TEIG LÄUFT</span><span className="live-style">{run.style === 'napoli' ? 'Neapolitanisch' : 'Dünn & kross'}</span></div>
-    <div className="live-progress-main"><div><p className="live-kicker">Aktuelle Phase</p><h2>{next.phase}</h2><p className="live-next">Nächster Schritt: <strong>{next.label}</strong></p></div><div className="live-countdown" aria-live="off"><span>{label}</span><small>{clock(next.at)}</small></div></div>
-    <div className="live-track" role="progressbar" aria-label="Zeitfortschritt bis zum Backen" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress)} aria-valuetext={`${Math.round(progress)} Prozent der geplanten Zeit vergangen`}><div className="live-fill" style={{ width: `${progress}%` }} /></div>
-    <div className="live-milestones"><span>Kneten<br/><b>{clock(mixAt)}</b></span><span>Teiglinge<br/><b>{clock(ballAt)}</b></span><span>Backen<br/><b>{clock(run.bakeAt)}</b></span></div>
-    <p className="live-note">Zeitfortschritt nach Plan · Der Balken misst nicht die tatsächliche Teigreife.</p>
-    {changed && <p className="live-warning">Du hast den Plan darunter geändert. Der laufende Teig nutzt weiterhin die beim Start gespeicherten Zeiten.</p>}
-    {run.startedAt < mixAt - 30 * 60000 && <p className="live-warning">Du hast den Teig vor dem geplanten Knetbeginn gestartet. Prüfe die nächsten Zeiten anhand der tatsächlichen Reife.</p>}
-    {run.startedAt > mixAt + 30 * 60000 && <p className="live-warning">Du hast den Teig nach dem geplanten Knetbeginn gestartet. Prüfe die nächsten Zeiten anhand der tatsächlichen Reife.</p>}
-    <button type="button" className="live-end" onClick={() => { if (window.confirm('Laufenden Teig beenden?')) { localStorage.removeItem(STORAGE_KEY); setRun(null); } }}>Laufenden Teig beenden</button>
+  return <section className={'live-progress comic ' + (!next ? 'finished' : '')} aria-label="Laufender Teig und Zeitfortschritt">
+    <div className="live-progress-head"><span className="live-badge"><span className="live-dot"/>{next ? 'DEIN TEIG LÄUFT' : 'GESCHAFFT'}</span><span className="live-style">{run.style === 'napoli' ? 'Neapolitanisch' : 'Dünn & knusprig'} · {run.method === 'poolish' ? 'Poolish' : 'Direktteig'}</span></div>
+    <p className="live-target">Dein Backtermin <strong>{stamp(run.originalBakeAt)}</strong></p>
+    <div className="live-progress-main"><div><p className="live-kicker">Aktuelle Phase</p><h2>{phase}</h2><p className="live-next">{next ? <>Nächster Schritt: <strong>{next.title}</strong></> : 'Guten Appetit!'}</p></div><div className={'live-countdown ' + (overdue ? 'overdue' : '')} aria-live="off"><span>{label}</span><small>{stamp(next?.at ?? run.bakeAt)}</small></div></div>
+    <div className="live-track" role="progressbar" aria-label="Zeitfortschritt bis zum Backen" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress)} aria-valuetext={`${Math.round(progress)} Prozent der geplanten Zeit vergangen`}><div className="live-fill" style={{ width: `${progress}%` }}/></div>
+    <div className="live-milestones"><span>Gestartet<br/><b>{stamp(run.startedAt)}</b></span><span>Teiglinge<br/><b>{stamp(ballAt)}</b></span><span>{shifted ? 'Neue Backzeit' : 'Backen'}<br/><b>{stamp(run.bakeAt)}</b></span></div>
+    {next && <><p className="live-action-detail">{next.detail}</p><button type="button" className="btn live-complete" onClick={() => save(completeStep(run, next.id, Date.now()))}>Schritt jetzt ausgeführt</button></>}
+    <p className="live-note">Zeitfortschritt nach Plan · Prüfe die tatsächliche Teigreife zusätzlich.</p>
+    {storageError && <p className="live-warning">Dieser Browser kann den Teig gerade nicht speichern. Lasse die Seite geöffnet, damit der Verlauf erhalten bleibt.</p>}
+    {shifted && <p className="live-warning">Dein Zieltermin bleibt {stamp(run.originalBakeAt)}. Mit den tatsächlich ausgeführten Schritten ergibt sich {stamp(run.bakeAt)}. {run.bakeAt < run.originalBakeAt ? 'Für den späteren Zieltermin ist eine kühlere Zwischenlagerung sinnvoll; prüfe die Teigreife.' : 'Die vorgesehenen Ruhezeiten wurden beibehalten.'}</p>}
+    {run.startedAt < run.steps[0].at - 30 * 60000 && <p className="live-warning">Du hast früher begonnen als geplant. Kontrolliere die Reife vor dem nächsten Schritt.</p>}
+    {next && <ReadinessCheck key={next.id} poolish={previous?.id === 'poolish'} cold={previous?.id === 'stock' && run.cold} onSave={observation => save({ ...run, observations: [...run.observations, observation] })} onPostpone={() => save(postponeRemaining(run, 30))}/>}
+    <details className="run-recipe"><summary>Rezept und Verlauf dieses Teigs</summary><p>{run.recipe.pizzas} × {run.recipe.weight} g · {run.recipe.hydration} % Wasser · {run.recipe.whole} % Vollkorn</p>
+      {run.method === 'poolish' && <p><b>Poolish:</b> {grams(amounts.poolish.white)} g helles Mehl · {grams(amounts.poolish.water)} ml Wasser · {grams(amounts.poolish.yeast)} g Instanthefe</p>}
+      <p><b>{run.method === 'poolish' ? 'Hauptteig zusätzlich' : 'Zutaten'}:</b> {grams(amounts.main.white)} g helles Mehl · {grams(amounts.whole)} g Vollkorn · {grams(amounts.main.water)} ml Wasser · {grams(amounts.main.yeast)} g Instanthefe · {grams(amounts.salt)} g Salz · {grams(amounts.oil)} g Öl{amounts.sugar > 0 ? ` · ${grams(amounts.sugar)} g Zucker` : ''}</p>
+      <ol className="planner-steps">{run.steps.map(step => <li key={step.id}><time>{stamp(run.completed[step.id] ?? step.at)}</time><div><strong>{run.completed[step.id] !== undefined ? '✓ ' : ''}{step.title}</strong></div></li>)}</ol>
+      {run.observations.slice(-3).map((observation, index) => <p key={index} className="observation">Reifeprüfung {stamp(observation.at)}{observation.temperature !== null ? ` · ${observation.temperature} °C` : ''}: {observation.advice}</p>)}
+    </details>
+    <button type="button" className="live-end" onClick={() => { if (window.confirm('Laufenden Teig beenden und den lokalen Verlauf entfernen?')) save(null); }}>Laufenden Teig beenden</button>
   </section>;
 }

@@ -66,3 +66,35 @@ body:has(.theme-ledger) { background:#efe4d3; } body:has(.theme-ledger) .theme-l
 @media (max-width:540px) { .live-progress-main { display:block; }.live-countdown { justify-items:start; margin-top:.9rem; text-align:left; }.live-countdown span { font-size:1.5rem; }.run-start { display:block; }.run-start .btn { margin-top:.65rem; width:100%; }.live-milestones { gap:.3rem; } }
 @media (prefers-reduced-motion:reduce) { .live-dot, .live-fill:after { animation:none; }.live-fill { transition:none; } }
 .run-start .btn:disabled { cursor:not-allowed; opacity:.5; box-shadow:none; }
+
+.planner-advice { margin:1rem 0; padding:.8rem .9rem; border-left:4px solid #bd3e2e; border-radius:8px; background:#f8edce; }
+.planner-advice strong { font-size:.85rem; }.planner-advice p { margin:.2rem 0 0; font-size:.76rem; line-height:1.4; }
+.planner-label { margin:1.1rem 0 .5rem; font-size:.9rem; font-weight:900; }
+.planner-choice { display:flex; flex-wrap:wrap; gap:.4rem; }
+.planner-choice .chip { margin:0; cursor:pointer; }.planner-choice .chip.selected { background:#bd3e2e; border-color:#bd3e2e; color:#fff; }
+.planner-hint { margin:.45rem 0 .7rem; color:#756d67; font-size:.73rem; line-height:1.45; }
+.planner-range { display:block; margin:.85rem 0; font-size:.82rem; }.planner-range b { float:right; }.planner-range input { display:block; width:100%; margin:.45rem 0 0; accent-color:#bd3e2e; }
+.planner-poolish { padding:.3rem .8rem .75rem; margin:.9rem 0; border:1px solid #d8cabb; border-radius:10px; background:#f8f2e7; }.planner-poolish p { margin:.6rem 0 0; font-size:.73rem; line-height:1.45; }
+.planner-steps { margin:.7rem 0 0; padding:0; list-style:none; border-left:2px solid #d8cabb; }.planner-steps li { display:grid; grid-template-columns:7rem 1fr; gap:.65rem; position:relative; padding:0 0 1rem 1rem; }.planner-steps li:before { content:''; position:absolute; left:-.36rem; top:.27rem; width:.65rem; height:.65rem; border-radius:50%; background:#bd3e2e; box-shadow:0 0 0 3px #fffdf9; }.planner-steps time { color:#796d61; font-size:.72rem; font-weight:900; }.planner-steps strong { font-size:.78rem; }.planner-steps p { margin:.18rem 0 0; color:#756d67; font-size:.7rem; line-height:1.4; }
+@media (max-width:540px) { .planner-steps li { grid-template-columns:1fr; gap:.1rem; }.planner-steps time { margin-bottom:.08rem; } }
+.live-complete { margin-top:.8rem; width:100%; }
+
+[hidden] { display:none !important; }
+.calculator-grid.running { display:block; max-width:760px; margin:auto; }
+.process-switch { display:flex; gap:.3rem; padding:.3rem; margin:0 0 1rem; border-radius:12px; background:#e9dfd2; }
+.process-switch button { flex:1; border:0; border-radius:9px; padding:.7rem .5rem; color:#796d61; background:transparent; font-size:.85rem; font-weight:900; }
+.process-switch button.selected { color:#fffdf9; background:#bd3e2e; box-shadow:0 2px 7px #2b211b15; }
+.planner-settings, .recipe-controls, .readiness-check, .run-recipe { margin-top:1rem; border-top:1px solid #d8cabb; padding-top:.85rem; }
+.planner-settings summary, .recipe-controls summary, .readiness-check summary, .run-recipe summary { cursor:pointer; font-size:.84rem; font-weight:900; }
+.recipe-controls { padding:1rem; margin-bottom:1rem; border:1px solid #d8cabb; border-radius:12px; background:#fffdf9; }
+.recipe-controls[open] summary { margin-bottom:1rem; }
+.auto-yeast { display:flex; align-items:center; gap:.5rem; margin-top:.8rem; font-size:.8rem; }.auto-yeast input { accent-color:#bd3e2e; }
+.planner-hint a { color:#a73525; text-decoration:underline; text-underline-offset:2px; }
+.live-target { margin:0 0 1rem; font-size:.8rem; color:#796d61; }.live-target strong { color:#342b26; }
+.live-action-detail { margin:.8rem 0 0; font-size:.8rem; color:#796d61; line-height:1.45; }
+.live-countdown.overdue span { color:#a35a12; font-size:.95rem; white-space:normal; max-width:16rem; }
+.live-progress.finished .live-dot { animation:none; background:#55734f; box-shadow:none; }
+.readiness-check label { display:grid; gap:.3rem; margin:.8rem 0; font-size:.78rem; }.readiness-check input,.readiness-check select { width:100%; }
+.readiness-result { margin-top:.8rem; padding:.8rem; border-radius:10px; background:#f8edce; font-size:.8rem; line-height:1.5; }.readiness-result p { margin:0 0 .6rem; }
+.run-recipe > p { font-size:.77rem; line-height:1.5; }.run-recipe .observation { padding:.65rem; border-radius:8px; background:#f8f2e7; color:#796d61; }
+@media (max-width:540px) { .app-shell > header { margin-bottom:1rem; }.app-shell > header > p:first-child { font-size:2rem; }.live-style { font-size:.65rem; }.live-progress { padding:.9rem; }.live-countdown.overdue span { max-width:100%; font-size:1.1rem; } }
